@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Financial Calculus Final Project</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Angelo Saporito" />
+    <meta name="date" content="2024-05-02" />
+    <script src="Fin_Calc_pre_files/header-attrs/header-attrs.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Financial Calculus Final Project
+]
+.subtitle[
+## Stochastically Simulating S&amp;P 500 Crediting Interest Rate
+]
+.author[
+### Angelo Saporito
+]
+.date[
+### 2024-05-02
+]
+
+---
+
+
+
+
+
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Table of Contents&lt;/h1&gt;
+
+.pull-left[
+
+- Terms to Know
+  - Annuity
+  - RILA
+  - Buffer
+  - etc.
+  
+- Customer Scenario
+  - Assumptions
+  - Goals
+  
+- Data Collection and Analysis
+
+- Assumptions and Simulation of S&amp;P 500
+  - Geometric Brownian Motion
+  - Simulation of S&amp;P 500
+]
+
+.pull-right[
+- Crediting Method
+    - Index Performance Strategies
+    - Index Precision Strategy
+    - Index Dual Precision Strategy
+    - Index Guard Strategy
+    - Index Protection Strategy
+    
+- Comparisons and Evaluations
+    - Tables (Summary Stats. &amp; Ratios)
+    - Percentile Graphs (Box. &amp; Hist.)
+
+- Proposal (Two Strategies):
+    - Risk-Averse Strategies
+    - Honary Mention (High Risk, High Yield)
+]
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Terms to Know &lt;/h1&gt;
+
+.pull-left[
+
+11. **Annuity**:  a financial product where an individual pays a lump sum or series of payments to an insurance company in exchange for regular disbursements, typically in retirement.
+
+2. **Registered Index-Linked Annuity (RILA)**: a type of annuity that allows the investor to participate in potential stock market gains while protecting against market losses by linking returns to a specified index, often with a guaranteed minimum return, typically used for retirement planning.
+
+3. **Crediting Interest Rate (f(r))**: the rate at which interest is calculated and applied to the annuity's accumulated value based on the performance of the chosen index.
+
+]
+
+.pull-right[
+
+4. **Buffer Rate**: refers to the percentage of market loss that the investor is protected against. For example, if the buffer rate is 10%, it means that the investor's principal is safeguarded against the first 10% of market losses, with any losses beyond that potentially impacting the investment.
+
+5. **Cap (Floor)**: refers to the maximum (minimum) rate of return that the investor can earn (lose) during a specific period, typically tied to the performance of an underlying index. 
+
+6. **Trigger Rate**: a predefined threshold that, when reached or exceeded by the performance of the underlying index, activates a specific feature or event within the annuity contract, such as a reset of the participation rate or a payout adjustment.
+]
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Customer Scenario &lt;/h1&gt;
+
+.pull-left[
+&lt;h3&gt; Assumptions &lt;/h3&gt;
+
+- Current Age: 54
+
+- Length of Crediting Period: 6 years (1,512 trading days)
+
+- Principal: $100,000
+
+- Investment Focus: We are only consider the crediting period with no withdrawals. The annual return is linked to the RILA strategies. The crediting interest rate is linked to the S&amp;P 500 index.
+]
+
+.pull-right[
+&lt;h3&gt; Goal Outcomes &lt;/h3&gt;
+
+- We want to test various RILA strategies provided by Allianz to maximize return and minimize risk within the tolerance of our client.
+
+- We will use various simulations, comparisons and evaluation metrics to propose the best strategies for this specific client.
+
+- Risk Tolerance: Since our client is retiring in 6-years after the annuity matures and the client has not given a tolerance threshold, we will assume moderate risk aversion.
+]
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt;Data Collection and Analysis&lt;/h1&gt;
+&lt;BR&gt;
+
+.pull-left[
+&lt;h3&gt; Data Collection &lt;/h3&gt;
+
+- We will use the R package **quantmod** to import the adjusted closing price of the daily S&amp;P 500 data for 20 years from the Yahoo Finance API.
+
+- We will then log-transform the index to calculate the daily percent change using the following formula: `$$GSPC^{per}_n=\ln{(\frac{GSPC_n}{GSPC_{n-1}})}$$`
+]
+
+.pull-right[
+&lt;h3&gt; Data Analysis &lt;/h3&gt;
+
+- After transforming the data, we will calculate `\(\sigma\)` (volatility) of the daily S&amp;P 500 and calculate `\(\mu\)` (mean) using the following formula: `$$\mu_{adj}=\mu+\frac{1}{2}\sigma^2$$`
+
+
+
+
+- The calculated mean is 0.0945 and the volatility is 0.1916.
+]
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Assumptions of S&amp;P 500 and Simulations &lt;/h1&gt;
+&lt;BR&gt;
+
+.pull-left[
+
+- For our simulations, we will assume the S&amp;P 500 follows **Geometric Brownian Motion** (GBM): `$$dF_t=\mu \cdot F(t)dt+ \sigma \cdot F(t)dW_t,$$` where `\(\mu\)` is our (adjusted) mean, `\(F(t)\)` is our simulated S&amp;P 500, `\(dt\)` is out time step, and `\(dW_t\)` is a simulated Wiener Process.
+
+- However, our index is log-transformed such that `\(F(t)=\ln S(t)\)`. So, `$$S_t=S_{t-1} \cdot e^{(\mu - \frac{1}{2} \sigma^2)dt+ \sigma \cdot (dW_t-dW_{t-1})}$$`
+]
+
+.pull-right[
+
+We justify our use of GBM to model the S&amp;P 500 for the following reasons:
+
+- *Continuous Compounding*: GBM assumes continuous compounding of returns, which is a realistic assumption in financial markets where prices can change rapidly and frequently throughout the trading day.
+
+- *Log-Normal Distribution*: GBM generates a log-normal distribution of prices, which aligns with the observed distribution of asset prices in financial markets.
+
+]
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; S&amp;P 500 Simulation &lt;/h1&gt;
+
+.pull-center[
+
+
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-3-1.gif" width="100%" /&gt;
+]
+
+---
+class: inverse center middle
+
+# Introducing Allianz RILA Strategies
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Performance Strategies (1/3) &lt;/h1&gt;
+
+.pull-left[
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-4-1.png" width="90%" /&gt;
+]
+
+&lt;BR&gt;
+&lt;BR&gt;
+&lt;BR&gt;
+
+$$
+\large
+f(r)=
+`\begin{cases}
+          \min{(r+10\%, \text{ 0.0})}, &amp; \text{if } r &lt; 0 \\
+          \\
+          \min{(r, \text{ 21.25%})}, &amp; \text{if } r\geq 0 
+\end{cases}`
+$$
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Performance Strategies (2/3) &lt;/h1&gt;
+
+.pull-left[
+
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-5-1.png" width="90%" /&gt;
+]
+
+
+&lt;BR&gt;
+&lt;BR&gt;
+&lt;BR&gt;
+
+$$
+\large
+f(r)=
+`\begin{cases}
+          \min{(r+20\%, \text{ 0.0})}, &amp; \text{if } r &lt; 0 \\
+          \\
+          \min{(r, \text{ 14%})}, &amp; \text{if } r\geq 0 
+\end{cases}`
+$$
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Performance Strategies (3/3) &lt;/h1&gt;
+
+.pull-left[
+
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-6-1.png" width="90%" /&gt;
+]
+
+
+&lt;BR&gt;
+&lt;BR&gt;
+&lt;BR&gt;
+
+$$
+\large
+f(r)=
+`\begin{cases}
+          \min{(r+30\%, \text{ 0.0})}, &amp; \text{if } r &lt; 0 \\
+          \\
+          \min{(r, \text{ 11.5%})}, &amp; \text{if } r\geq 0 
+\end{cases}`
+$$
+
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Precision Strategy &lt;/h1&gt;
+
+.pull-left[
+
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-7-1.png" width="90%" /&gt;
+]
+
+
+&lt;BR&gt;
+&lt;BR&gt;
+&lt;BR&gt;
+
+$$
+\large
+f(r)=
+`\begin{cases}
+          \min{(r+10\%, \text{ 0.0})}, &amp; \text{if } r &lt; 0 \\
+          \\
+          11.4\% , &amp; \text{otherwise}
+\end{cases}`
+$$
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Dual Precision Strategy &lt;/h1&gt;
+
+.pull-left[
+
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-8-1.png" width="90%" /&gt;
+]
+
+
+&lt;BR&gt;
+&lt;BR&gt;
+&lt;BR&gt;
+
+$$
+\large
+f(r)=
+`\begin{cases}
+           r+10\%, &amp; \text{if } r &lt; -10\% \\
+           \\
+          9.9\%, &amp; \text{if } r\geq 0 
+\end{cases}`
+$$
+
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Guard Strategy &lt;/h1&gt;
+
+.pull-left[
+
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-9-1.png" width="90%" /&gt;
+]
+
+
+&lt;BR&gt;
+&lt;BR&gt;
+&lt;BR&gt;
+
+$$
+\large
+f(r) = \max{(\min{(18\%, r)}, \text{ 10%})}
+$$
+---
+class:inverse4, top
+
+&lt;h1 align="center"&gt; Protection Strategy &lt;/h1&gt;
+
+.pull-left[
+
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-10-1.png" width="90%" /&gt;
+]
+
+
+&lt;BR&gt;
+&lt;BR&gt;
+&lt;BR&gt;
+
+$$
+\large
+f(r)=
+`\begin{cases}
+           9.9\%, &amp; \text{if } r &lt; 0 \\
+           \\
+          0\%, &amp; \text{otherwise}
+\end{cases}`
+$$
+
+---
+class: center middle
+
+# Comparison and Evaluation of RILA Strategies
+---
+class:inverse4, top
+
+&lt;h2 align="center"&gt; Comparison of RILA Strategies (1/3) &lt;/h2&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Table: Descriptive Statistics of Return Rates by Strategy
+
+|Strategy      |  Mean| St. D.|   Max|    Min| 25th Perc| 5th Perc|
+|:-------------|-----:|------:|-----:|------:|---------:|--------:|
+|Performance1  | 0.080|  0.113| 0.212| -0.343|     0.000|   -0.114|
+|Performance2  | 0.068|  0.070| 0.140| -0.243|     0.000|   -0.014|
+|Performance3  | 0.061|  0.054| 0.115| -0.143|     0.000|    0.000|
+|Precision     | 0.058|  0.083| 0.114| -0.343|     0.000|   -0.114|
+|DualPrecision | 0.067|  0.075| 0.099| -0.343|     0.099|   -0.114|
+|Guard         | 0.059|  0.111| 0.180| -0.100|    -0.055|   -0.100|
+|Protection    | 0.058|  0.044| 0.091|  0.000|     0.000|    0.000|
+
+---
+class:inverse4, top
+
+&lt;h2 align="center"&gt; Comparison of RILA Strategies (2/3) &lt;/h2&gt;
+
+.pull-center[
+
+
+&lt;img src="Fin_Calc_pre_files/figure-html/unnamed-chunk-19-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+---
+class:inverse4, top
+
+&lt;h2 align="center"&gt; Comparison of RILA Strategies (3/3) &lt;/h2&gt;
+
+
+Table: Risk Ratios by Strategy
+
+|Strategy      | Sharpe| Calmar| Mod. Sharpe|
+|:-------------|------:|------:|-----------:|
+|Performance1  |  0.501|  0.144|       0.119|
+|Performance2  |  0.637|  0.178|       0.099|
+|Performance3  |  0.696|  0.236|       0.145|
+|Precision     |  0.417|  0.127|       0.031|
+|DualPrecision |  0.581|  0.152|       0.023|
+|Guard         |  0.321|  0.211|       0.119|
+|Protection    |  0.786|  0.637|       0.085|
+
+&lt;BR&gt;
+
+.pull-center[
+
+$$
+`\begin{matrix}
+\text{Sharpe}=\frac{R_p-R_f}{\sigma_p}, &amp; \text{Calmar}=\frac{R_p}{\max{(r)}-\min{(r)}}, &amp; \text{Modified Sharpe}=\frac{R_p-R_f}{\sqrt{\text{Var(r)}+\frac{\text{Skew}^2}{3}+\frac{\text{Kurt.}^2}{36}}}
+\end{matrix}`
+$$
+]
+
+---
+class:inverse4, top
+
+&lt;h2 align="center"&gt; Proposal (Risk-Averse) &lt;/h2&gt;
+
+.pull-left[
+- We recommend these strategies in the order in which they are presented:
+      - **Performance 2** (20% buff, 14% cap) allows for larger gains during bull markets, allowing you to take advantage of market gains while modestly protecting against market downturns. High mean return rate, moderate volatility, and above average ratio scores
+      - **Performance 3** (30% buff, 11.5% cap) provides similar advantages as Performance 2; however, its gains, as well as its losses, are capped below that of Performance 2. It also ranks higher in Sharpe, Calmar and Modified Sharpe ratios then Performance 2
+      - **Protection** (0% floor, 9.1% trigger) is the least risky investment option. Its gains are severely capped, but so are its losses. Intended for investors with zero risk tolerance 
+]
+
+.pull-right[
+&lt;BR&gt;
+&lt;BR&gt;
+![](Fin_Calc_pre_files/figure-html/unnamed-chunk-21-1.png)&lt;!-- --&gt;
+]
+
+---
+class:inverse4, top
+
+&lt;h2 align="center"&gt; Conclusion &amp; Final Proposal &lt;/h2&gt;
+
+.pull-left[
+
+- **Mean Return Rate**: Performance 2 offers a competitive mean return rate of 6.8%, which is higher than the other strategies except for Performance 1.
+
+- **Downside Protection**: Performance 2 provides a buffer of 20% against downside risk. This means that even in a negative market scenario, the client's investment is protected up to a certain extent, reducing the potential for significant losses and providing a level of security and peace of mind for the client as they approach retirement.
+
+- **Potential Gains**: While Performance 2 offers downside protection, it still maintains a respectable cap rate of 14%, indicating the potential for significant gains if the market performs well. This balance between downside protection and upside potential aligns well with the client's retirement objectives, as they can benefit from market gains while having a safety net against losses.
+]
+
+.pull-left[
+- **Risk-Adjusted Returns**: Although Performance 2 may score lower on some risk-adjusted ratios like Sharpe and Calmar ratios compared to Performance 3 and Protection, it's essential to consider the overall risk-return profile in the context of your client's retirement goals. Performance 2 strikes a balance between risk and return that may be more suitable for the client's needs, especially considering the shorter time horizon to retirement.
+
+- **Client's Age and Time Horizon**: Given that the client is 54 years old and retiring in 6 years, preserving capital and minimizing downside risk become crucial priorities. Performance 2's combination of downside protection and potential gains makes it well-suited for this stage of the client's investment journey.
+
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"slideNumberFormat": "%current%",
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
